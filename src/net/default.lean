@@ -20,10 +20,13 @@ ffi.type.struct ffi.struct_body.empty
 ffi.type.struct ffi.struct_body.empty
 
 def tcp_listener.bind [io.interface] : string → nat → io (ref tcp_listener) :=
-foreign "liblean_net.dylib" "tcp_listener_bind" (tcp_listener) [ffi.base_type.string, ffi.base_type.int]
+foreign "liblean_net.dylib" "tcp_listener_bind" tcp_listener [ffi.base_type.string, ffi.base_type.int]
 
 def tcp_listener.accept [io.interface] : ref tcp_listener → io (ref tcp_stream) :=
 foreign "liblean_net.dylib" "tcp_listener_accept" tcp_stream [tcp_listener]
+
+def tcp_stream.write [io.interface] : ref tcp_stream → string → io nat :=
+foreign "liblean_net.dylib" "tcp_stream_write" ffi.base_type.int [tcp_stream, ffi.base_type.string]
 
 def type_of {A : Type} (x : A) := A
 
@@ -34,6 +37,7 @@ def main : io unit := do
     listener ← tcp_listener.bind "localhost" 3000,
     io.print_ln "Listening on localhost:3000",
     stream ← tcp_listener.accept listener,
+    tcp_stream.write stream "foo", -- HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nabcdef",
     io.print_ln "accepted connection",
     return ()
 

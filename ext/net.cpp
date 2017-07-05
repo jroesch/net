@@ -89,3 +89,16 @@ TcpStream TcpStream::connect(std::string hostname) {
 
     return stream;
 }
+
+int TcpStream::read(buffer<char> & char_buffer) {
+
+}
+
+int TcpStream::write(buffer<char> const & buf) {
+    auto sz = buf.size();
+    auto bytes_written = send(this->socket_fd, (const void *)buf.data(), sz, 0);
+    if (bytes_written < 0) {
+        throw TCPException("ERROR, writing\n");
+    }
+    return bytes_written;
+}
