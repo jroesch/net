@@ -1,18 +1,6 @@
 import system.io
 import system.ffi
 
-def ref [ioi : io.interface] : ffi.type → Type :=
-ioi.ffi.ref
-
-@[reducible] def foreign_fn_ty [ioi : io.interface] (ret : ffi.type) (args : list ffi.type) : Type :=
-ffi.foreign_ret_ty (@io ioi) (@ref ioi) ret args
-
-def foreign [ioi : io.interface]
-    (library symbol : string)
-    (ret : ffi.type)
-    (args : list ffi.type) : foreign_fn_ty ret args :=
-ioi.ffi.foreign library symbol ret args
-
 @[reducible] def tcp_listener : ffi.type :=
 ffi.type.struct ffi.struct_body.empty
 
@@ -28,17 +16,5 @@ foreign "liblean_net.dylib" "tcp_listener_accept" tcp_stream [tcp_listener]
 def tcp_stream.write [io.interface] : ref tcp_stream → string → io nat :=
 foreign "liblean_net.dylib" "tcp_stream_write" ffi.base_type.int [tcp_stream, ffi.base_type.string]
 
-def type_of {A : Type} (x : A) := A
-
-variable [io.interface]
-
-def main : io unit := do
-    io.print_ln "Starting test server ...",
-    listener ← tcp_listener.bind "localhost" 3000,
-    io.print_ln "Listening on localhost:3000",
-    stream ← tcp_listener.accept listener,
-    tcp_stream.write stream "foo", -- HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nabcdef",
-    io.print_ln "accepted connection",
-    return ()
-
-#eval main
+def fork_io [io.interface] : io unit → io unit :=
+foreign "liblean_net.dylib" "fork_io" (unit) [io unit]
