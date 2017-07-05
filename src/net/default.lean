@@ -1,6 +1,8 @@
 import system.io
 import system.ffi
 
+open io.ffi
+
 @[reducible] def tcp_listener : ffi.type :=
 ffi.type.struct ffi.struct_body.empty
 
@@ -14,6 +16,9 @@ def tcp_listener.accept [io.interface] : ref tcp_listener → io (ref tcp_stream
 foreign "liblean_net.dylib" "tcp_listener_accept" tcp_stream [tcp_listener]
 
 def tcp_stream.write [io.interface] : ref tcp_stream → string → io nat :=
+foreign "liblean_net.dylib" "tcp_stream_write" ffi.base_type.int [tcp_stream, ffi.base_type.string]
+
+def tcp_stream.read [io.interface] : ref tcp_stream → string → io nat :=
 foreign "liblean_net.dylib" "tcp_stream_write" ffi.base_type.int [tcp_stream, ffi.base_type.string]
 
 def fork_io [io.interface] : io unit → io unit :=
